@@ -314,3 +314,112 @@ autocomplete属性规定输入字段是否应该启用自动完成功能。默�
 
 autocomplete属性适用于<form>，以及下面的<input>类型：text,search,url,telephone,email,password,datepickers,range以及color。
 
+## 如何实现浏览器内多个标签页
+
+相关资料：
+
+（1）使用WebSocket，通信的标签页连接同一个服务器，发送消息到服务器后，服务器推送消息给所有连接的客户端。
+
+（2）使用SharedWorker（只在chrome浏览器实现了），两个页面共享同一个线程，通过向线程发送数据和接收数据来实现标签页之间的双向通行。
+
+（3）可以调用localStorage、cookies等本地存储方式，localStorge另一个浏览上下文里被添加、修改或删除时，它都会触发一个storage事件，我们通过监听storage事件，控制它的值来进行页面信息通信；
+
+（4）如果我们能够获得对应标签页的引用，通过postMessage方法也是可以实现多个标签页通信的
+
+回答：
+
+​		实现多个标签页之间的通信，本质上都是通过中介者模式来实现的。因为标签页之间没有办法直接通信，因此我们可以找一个中介者，让标签页和中介者进行通信，然后让这个中介者来进行消息的转发。
+
+第一种实现的方式是使用websocket协议，因为websocket协议可以实现服务器推送，所以服务器就可以用来当做这个中介者。标签页通过向服务器发送数据，然后由服务器向其他标签页推送转发。
+
+第二种是使用ShareWorker的方式，shareWorker会在页面存在的生命周期内创建一个唯一的线程，并且开启多个页面也只会使用同一个线程。这个时候共享线程就可以充当中介者的角色。标签页间通过共享一个线程，然后通过这个共享的线程来实现数据的交换。
+
+第三种方式是使用localStorage的方式，我们可以在一个标签页对localStorage的变化事件进行监听，然后当另一个标签页修改数据的时候，我们就可以通过这个监听事件来获取到数据。这个时候localStorage对象就是充当的中介者的角色。
+
+还有一种方式是使用postMessage方法，如果我们能够获得对应标签页的引用，我们就可以使用postMessage方法，进行通信
+
+详细的资料可以参考：[《WebSocket教程》](http://www.ruanyifeng.com/blog/2017/05/websocket.html)[《WebSocket协议：5分钟从入门到精通》](https://www.cnblogs.com/chyingp/p/websocket-deep-in.html)[《WebSocket学习（一）——基于socket.io实现简单多人聊天室》](https://segmentfault.com/a/1190000011538416)[《使用WebStorageAPI》](https://developer.mozilla.org/zh-CN/docs/Web/API/Web_Storage_API/Using_the_Web_Storage_API)[《JavaScript的多线程，Worker和SharedWorker》](https://www.zhuwenlong.com/blog/article/590ea64fe55f0f385f9a12e5)[《实现多个标签页之间通信的几种方法》](https://juejin.cn/post/6844903589924569101)
+
+## webSocket如何兼容低版本浏览器
+
+AdobeFlashSocket
+
+ActiveXHTMLFile(IE)
+
+基于multipart编码发送XHR
+
+基于长轮询的XHR
+
+## 页面可见性（PageVisibilityAPI）可以有哪些用途
+
+这个新的API的意义在于，通过监听网页的可见性，可以预判网页的卸载，还可以用来节省资源，减缓电能的消耗。比如，一旦用户不看网页，下面这些网页行为都是可以暂停的。
+
+（1）对服务器的轮询
+
+（2）网页动画
+
+（3）正在播放的音频或视频
+
+详细资料可以参考：[《PageVisibilityAPI教程》](http://www.ruanyifeng.com/blog/2018/10/page_visibility_api.html)
+
+## 如何在页面上实现一个圆形的可点击区域
+
+（1）纯html实现，使用<area>来给<img>图像标记热点区域的方式，<map>标签用来定义一个客户端图像映射，<area>标签用来定义图像映射中的区域，area元素永远嵌套在map元素内部，我们可以将area区域设置为圆形，从而实现可点击的圆形区域。
+
+（2）纯css实现，使用border-radius，当border-radius的长度等于宽高相等的元素值的一半时，即可实现一个圆形的点击区域。
+
+（3）纯js实现，判断一个点在不在圆上的简单算法，通过监听文档的点击事件，获取每次点击时鼠标的位置，判断该位置是否在我们规定的圆形区域内。
+
+详细资料可以参考：[《如何在页面上实现一个圆形的可点击区域？》](https://maizi93.github.io/2017/08/29/%E5%A6%82%E4%BD%95%E5%9C%A8%E9%A1%B5%E9%9D%A2%E4%B8%8A%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E5%9C%86%E5%BD%A2%E7%9A%84%E5%8F%AF%E7%82%B9%E5%87%BB%E5%8C%BA%E5%9F%9F%EF%BC%9F/)[《HTML标签及在实际开发中的应用》](https://www.zhangxinxu.com/wordpress/2017/05/html-area-map/)
+
+## 实现不使用border画出1px高的线，在不同浏览器的标准模式与怪异模式下都能保持一致的效果
+
+```
+<div style="height:1px;overflow:hidden;background:red"></div>
+```
+
+## title与h1的区别
+
+title属性没有明确意义只表示是个标题，h1则表示层次明确的标题，对页面信息的抓取也有很大的影响。
+
+## img的title和alt有什么区别
+
+title通常当鼠标滑动到元素上的时候显示
+
+alt是img的特有属性，是图片内容的等价描述，用于图片无法加载时显示、读屏器阅读图片。可提图片高可访问性，除了纯装饰图片外都必须设置有意义的值，搜索引擎会重点分析
+
+## Canvas和SVG有什么区别
+
+Canvas是一种通过JavaScript来绘制2D图形的方法。Canvas是逐像素来进行渲染的，因此当我们对Canvas进行缩放时，会出现锯齿或者失真的情况
+
+SVG是一种使用XML描述2D图形的语言。SVG基于XML，这意味着SVGDOM中的每个元素都是可用的。我们可以为某个元素附加JavaScript事件监听函数。并且SVG保存的是图形的绘制方法，因此当SVG图形缩放时并不会失真。
+
+详细资料可以参考：[《SVG与HTML5的canvas各有什么优点，哪个更有前途？》](https://www.zhihu.com/question/19690014)
+
+## 网页验证码是干嘛的，是为了解决什么安全问题
+
+（1）区分用户是计算机还是人的公共全自动程序。可以防止恶意破解密码、刷票、论坛灌水
+
+（2）有效防止黑客对某一个特定注册用户用特定程序暴力破解方式进行不断的登陆尝试
+
+## 渐进增强和优雅降级的定义
+
+渐进增强：针对低版本浏览器进行构建页面，保证最基本的功能，然后再针对高级浏览器进行效果、交互等改进和追加功能达到更好的用户体验
+
+优雅降级：一开始就根据高版本浏览器构建完整的功能，然后再针对低版本浏览器进行兼容。
+
+## attribute和property的区别是什么
+
+attribute是dom元素在文档中作为html标签拥有的属性
+
+property就是dom元素在js中作为对象拥有的属性
+
+对于html的标准属性来说，attribute和property是同步的，是会自动更新的，但是对于自定义的属性来说，他们是不同步的。
+
+## 对web标准、可用性、可访问性的理解
+
+可用性（Usability）：产品是否容易上手，用户能否完成任务，效率如何，以及这过程中用户的主观感受可好，是从用户的角度来看产品的质量。可用性好意味着产品质量高，是企业的核心竞争力可访问性（Accessibility）：Web内容对于残障用户的可阅读和可理解性
+
+可维护性（Maintainability）：一般包含两个层次，一是当系统出现问题时，快速定位并解决问题的成本，成本低则可维护性好
+
+二是代码是否容易被人理解，是否容易修改和增强功能
